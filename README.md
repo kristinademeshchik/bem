@@ -1,111 +1,109 @@
-# Codeworks style guides
+# BEM style guide
 
 - [BEM](#1)
-  - [General idea] (#1.1)
-  - [BEM Principles] (#1.2)
-  - [Методология] (#1.3)
-
-
-<a id="1"></a>
-BEM stands for “Block”, “Element”, “Modifier”.
-Block is a top-level abstraction, element is a child item and a modifier defines the appearance of blocks.
-
+  - [General Idea](#1.1)
+  - [BEM Principles](#1.2)
+  - [Rules to Follow](#1.3)
+  - [File Structure](#1.4)
 
 <a id="1.1"></a>
-### Правила:
-- Использовать табуляцию с расстоянием в 2-пробела;
-- По возможности использовать семантику тегов HTML5;
-- Прописывать обязательные атрибуты title и alt для соотвествующих тегов `<a>` и `<img>`;
-- Для аннулирования float использовать `clearfix`;
-- Теги, классы и идентификаторы писать строчными буквами;
-- Правильное написание названий классов и идентификаторов;
-  - если названия классов состоят из нескольких слов, то они пишутся через дефис "-" `.header-content`;
-- Названия класса должны описывать то, чем является элемент, а не как он выглядит  `.read-more-link` вместо `.red-button`
+### General idea:
+
+BEM is a naming convention which does a good job to help to provide a maintainable architecture with a recognizable terminology.
+BEM stands for “Block”, “Element”, “Modifier”.
+
+B__E--M
 
 <a id="1.2"></a>
-### Рекомендуемый порядок атрибутов:
-1. class;
-2. id, name;
-3. data-*;
-4. src, for, type, href, value;
-5. title, alt;
-6. role, aria-*;
-7. angular directives.
+### BEM Principles:
+
+#### 1. What is block?
+
+Block is a top-level abstraction, it's a logically and functionally independent page component which easy to re-use. It's an entity, a “building block” of an application. To implement a block, we write CSS that describes appearance of the block, not its position.
+
+#### 2. What is element?
+Element is a part of a block that can't be used outside.
+
+#### 3. What is modifier?
+Modifier is a BEM entity that defines the appearance and behavior of a block or an element.
 
 <a id="1.3"></a>
-### Методология:
-БЭМ = Б__Э_М
+### Rules to follow:
 
-#### 1. Что есть блок?
-Блок - часть страницы, являющаяся логически независимой от остального наполнения. Представляет собой "строительную единицу" для сайта
+- CSS for every block should be located in separate files so it's easy to find them by <kbd>CMD</kbd>+<kbd>P</kbd>
+- Blocks don't have position/margin styles so they are reusable.
 
-Блок не отвечает за свое расположение. Он задает внутренние своства (размеры, шрифты и т.д.)
+How to position elements:
 
-Разработчик сам выбирает, что есть блок, а что элемент.
-
-Если кусок кода не имеет смысла без родителя - это скорее всего элемент.
-
-Исключением может быть ситуация, когда у такого элемента оказывается слишком богатый внутренний мир.
-
-Стили для каждого блока находятся в отдельном файле.
-
-#### 2. Не бывает элементов вложенных в элементы?
-Так делать нельзя.
 ```
-.block__elem1__elem2__ ...
-```
-Как надо?
-```
-<div class="block">
-  <div class="block__elem1">
-  
-    <div class="block__elem2">
-    </div> <!-- end block__elem2 -->
-    
-  </div> <!-- end block__elem1 -->
-  
-  <div class="block__elem3">
-  </div> <!-- end block__elem3 -->
+<div class=“block1”>
+    <div class=“block1__element block2”></div>
 </div>
 ```
 
-#### 3. Глобальные модификаторы
-В проекте **евровеб** вводим понятие глобального модификатора (ГМ), позволяет быстро применять некоторые стили, такие как upper-case, text-center и т.д.  
-Класс ГМ начинается с '_' `._upper`
+`.block1__element` class is responsible for the position of block2.
 
-Стили для ГМ записываются в файл global-modifiers.less в папке components.
+- `block__element__element` - this structure can never exist.
 
-
-<a id="2"></a>
-## CSS
-
-<a id="2.1"></a>
-### Правила:
-- Использовать табуляцию с расстоянием в 2-пробела;
-- Использовать пробел после “ : “  и перед  “ { ";
 ```
-.sector {
-  display: block;
-  margin: 0;
+<div class=“block”>
+    <div class=“block__element1">
+        <div class=“block__element2”></div>
+    </div>
+</div>
+```
+
+In sass/stylus:
+
+```
+.block {
+    $this: &
+
+    &__element1 {
+        @at-root {
+            #{$this}__element2 & {
+
+            }
+        }
+    }
 }
 ```
-- Использовать перевод на новую строку для каждого последующего CSS правила;
-- Использовать пробел после запятых `rgba(0, 0, 0, 1)`;
-- Всегда использовать “;” в конце CSS правила;
-- Использовать перевод на новую строку при перечислении селекторов:
+
+- `.block > div` or `.block1 .block2` - this structures can never exist, nested selectors are not allowed as it will screw up the flatness.
+- By adding prefixes to entities names we can avoid conflicts with external libraries:
+    - c- for component
+    - g- for grid
+    - js- for javascript hooks
+
+- Global modifiers naming convention: `._global-modifier`. Try to avoid creating global modifiers. In most cases it’s better to create a block modifier instead of using global modifiers.
+
+
+<a id="1.4"></a>
+### File Structure:
+
+4. The structure of the files can be the following:
+
 ```
-.sector_1,
-.sector_2,
-.sector_3 {
-  display: block;
-  margin: 0;
-}
+styles/
+    components/
+        Reusable components are located here
+    grid/
+        Grid if needed (we use bootstrap so probably not)
+    utils/
+        Functions/Variables/Mixings/Placeholders
+        libs.styl to combine all the utils together for convinient export
+
+style.styl
 ```
-- Использовать hex код #000 (не rgb(0,0,0) или ‘black’ ). За исключением случаев `rgba(0, 0, 0, 1)`;
-- Не использовать px для нулевого значения - `margin: 0` вместо `margin: 0px`;
-- Использовать только lowercase символы при записи hex кода (`#dadada` вместо `#DADADA`).
-- Использовать переменные CSS (LESS/SASS/SCSS) для инициализации color/size/fonts;
-- Не минимизировать CSS файлы для удобного последующего редактирования/чтения.  
-**Минимизация проходит во время завершения проекта при его сборке**
-- Использовать общепринятый normalize файл для нормализации стандартных стилей;
-- Подключать все less файлы с помощью @import в основной файл less;
+
+It's a good practice to group block CSS files in folders under the `components` folder. 
+For example:
+
+```
+styles/
+    components/
+        form/
+            c-btn.styl
+            c-select.styl
+            c-input.styl
+```
